@@ -71,7 +71,7 @@ header {
   max-width: 500px;
   display: flex;
   margin: 0 20px;
-  background: var(--bg-card);
+  background: #222b35;
   border-radius: 5px;
   overflow: hidden;
   border: 1px solid #000;
@@ -87,7 +87,7 @@ header {
 }
 
 .search-bar button {
-  background: var(--bg-card);
+  background: #222b35;
   border: none;
   color: var(--accent);
   padding: 0 15px;
@@ -117,6 +117,13 @@ header {
   font-size: 16px;
   position: relative;
   transition: background 0.2s, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.nav-btn:focus,
+.pricing-card:focus,
+.lifetime-card:focus,
+.bundle-card:focus {
+  outline: none;
 }
 
 .nav-btn:hover {
@@ -152,7 +159,7 @@ header {
   padding: 20px 40px;
   display: flex;
   gap: 30px;
-  background: var(--bg-secondary);
+  background: #101216;
   flex-wrap: wrap;
 }
 
@@ -168,7 +175,7 @@ header {
 }
 
 select {
-  background: var(--bg-card);
+  background: #2a475e;
   color: white;
   border: none;
   padding: 8px 12px;
@@ -183,7 +190,7 @@ select:hover {
 
 /* PROGRESS BAR */
 .status-bar {
-  background: var(--bg-secondary);
+  background: #101216;
   padding: 0 40px 10px;
   color: var(--text-secondary);
   font-size: 14px;
@@ -196,10 +203,6 @@ select:hover {
   grid-template-columns: minmax(0, 2.5fr) minmax(0, 1.8fr);
   gap: 40px;
   align-items: stretch;
-}
-
-.theme-light .hero {
-  background: radial-gradient(circle at top left, #ffe0e0, #ffffff 60%);
 }
 
 .hero-text h2 {
@@ -270,11 +273,6 @@ select:hover {
   gap: 12px;
 }
 
-.theme-light .hero-highlight {
-  background: rgba(255,255,255,0.95);
-  border-color: rgba(0,0,0,0.08);
-}
-
 .hero-tag {
   align-self: flex-start;
   background: rgba(255, 204, 0, 0.2);
@@ -329,11 +327,11 @@ select:hover {
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 18px;
   padding: 20px 40px 10px;
-  background: var(--bg-secondary);
+  background: #101216;
 }
 
 .highlight-card {
-  background: var(--bg-card);
+  background: #16202d;
   border-radius: 6px;
   padding: 16px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.4);
@@ -360,7 +358,7 @@ select:hover {
 .trust-section,
 .faq-section {
   padding: 25px 40px 10px;
-  background: var(--bg-secondary);
+  background: #101216;
 }
 
 .pricing-section h2,
@@ -385,9 +383,9 @@ select:hover {
 }
 
 .pricing-card {
-  background: var(--bg-card);
+  background: #16202d;
   border-radius: 6px;
-  padding: 16px;
+  padding: 22px 16px 16px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.5);
   position: relative;
   cursor: pointer;
@@ -400,12 +398,12 @@ select:hover {
 }
 
 .pricing-card.featured {
-  background: var(--bg-card);
+  background: #1b2836;
 }
 
 .pricing-badge {
   position: absolute;
-  top: -8px;
+  top: 6px;
   right: 10px;
   background: linear-gradient(to right, #ffcc00, #ff9900);
   color: #1a1a1a;
@@ -457,11 +455,37 @@ select:hover {
   margin-top: 10px;
   background: radial-gradient(circle at left, #47bfff33, #16202d);
   border-radius: 8px;
-  padding: 14px 16px;
+  padding: 16px;
   border: 1px solid rgba(255,255,255,0.1);
   display: flex;
   flex-direction: column;
   gap: 8px;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.lifetime-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 24px rgba(255,215,0,0.35);
+  border-color: rgba(255,215,0,0.7);
+}
+
+.lifetime-selected {
+  box-shadow: 0 0 26px rgba(255,215,0,0.65);
+  border-color: rgba(255,215,0,0.95);
+  animation: lifetimeGlow 1.4s ease-in-out infinite alternate;
+}
+
+.lifetime-flyer {
+  border-radius: 8px;
+  box-shadow: 0 0 24px rgba(255,215,0,0.8);
+  overflow: hidden;
+  transition: transform 0.6s ease-out, opacity 0.6s ease-out;
+}
+
+@keyframes lifetimeGlow {
+  0% { box-shadow: 0 0 18px rgba(255,215,0,0.4); }
+  100% { box-shadow: 0 0 32px rgba(255,240,150,0.95); }
 }
 
 .lifetime-main {
@@ -512,9 +536,9 @@ select:hover {
 }
 
 .bundle-card {
-  background: var(--bg-card);
+  background: #16202d;
   border-radius: 6px;
-  padding: 16px;
+  padding: 22px 16px 16px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.5);
   position: relative;
   cursor: pointer;
@@ -522,7 +546,7 @@ select:hover {
 }
 
 .bundle-card.featured {
-  background: var(--bg-card);
+  background: #1b2836;
 }
 
 .bundle-card:hover {
@@ -537,8 +561,8 @@ select:hover {
 
 .bundle-badge {
   position: absolute;
-  top: -8px;
-  right: 12px;
+  top: 6px;
+  right: 10px;
   background: linear-gradient(to right, #ffcc00, #ff9900);
   color: #1a1a1a;
   font-size: 11px;
@@ -587,6 +611,7 @@ select:hover {
 
 .bundle-tag.emphasis {
   font-weight: 600;
+  color: #ffd700;
 }
 
 .bundle-compare {
@@ -607,7 +632,7 @@ select:hover {
 }
 
 .bundle-compare-head {
-  background: var(--bg-card);
+  background: #16202d;
   font-weight: 600;
 }
 
@@ -627,7 +652,7 @@ select:hover {
 }
 
 .trust-card {
-  background: var(--bg-card);
+  background: #16202d;
   border-radius: 6px;
   padding: 16px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.5);
@@ -657,7 +682,7 @@ select:hover {
 }
 
 .faq-item {
-  background: var(--bg-card);
+  background: #16202d;
   border-radius: 6px;
   padding: 14px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.5);
@@ -676,7 +701,7 @@ select:hover {
 .progress-container {
   width: 100%;
   height: 4px;
-  background: var(--bg-card);
+  background: #2a475e;
   border-radius: 2px;
   overflow: hidden;
   margin-bottom: 5px;
@@ -792,28 +817,6 @@ main {
   transform: scale(1.05);
 }
 
-.img-overlay-tag {
-  position: absolute;
-  left: 10px;
-  bottom: 10px;
-  background: rgba(0,0,0,0.6);
-  color: #fff;
-  font-size: 11px;
-  padding: 4px 8px;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  opacity: 0;
-  transform: translateY(4px);
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
-
-.card:hover .img-overlay-tag {
-  opacity: 1;
-  transform: translateY(0);
-}
-
 .card-body {
   padding: 15px;
   display: flex;
@@ -852,6 +855,7 @@ main {
   color: var(--text-secondary);
   margin: 8px 0;
   display: -webkit-box;
+  line-clamp: 3;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
@@ -1042,7 +1046,7 @@ main {
 
 .modal-header {
   padding: 20px;
-  background: var(--bg-secondary);
+  background: #171a21;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1151,7 +1155,7 @@ main {
 
 .modal-footer {
   padding: 15px 20px;
-  background: var(--bg-secondary);
+  background: #171a21;
   display: flex;
   justify-content: flex-end;
   gap: 10px;
@@ -1187,6 +1191,79 @@ main {
   color: #555;
   font-size: 12px;
   background: #000;
+}
+
+body.light-theme {
+  background-color: #f7f7f7;
+  color: #111111;
+}
+
+body.light-theme header {
+  background-color: #ffffff;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+body.light-theme .hero {
+  background: radial-gradient(circle at top left, #ffe0e0, #ffffff 60%);
+}
+
+body.light-theme .highlights,
+body.light-theme .pricing-section,
+body.light-theme .bundles-section,
+body.light-theme .trust-section,
+body.light-theme .faq-section,
+body.light-theme .controls,
+body.light-theme .status-bar {
+  background: #f4f4f6;
+}
+
+body.light-theme .search-bar {
+  background: #ffffff;
+  border-color: #ddd;
+}
+
+body.light-theme .search-bar input {
+  color: #111111;
+}
+
+body.light-theme .search-bar button {
+  background: #ffffff;
+}
+
+body.light-theme .games-grid .card,
+body.light-theme .highlight-card,
+body.light-theme .pricing-card,
+body.light-theme .lifetime-card,
+body.light-theme .bundle-card,
+body.light-theme .trust-card,
+body.light-theme .faq-item,
+body.light-theme .modal-content,
+body.light-theme .details-modal-content {
+  background: #ffffff;
+  color: #111111;
+}
+
+body.light-theme .pricing-section h2,
+body.light-theme .bundles-section h2,
+body.light-theme .trust-section h2,
+body.light-theme .faq-section h2 {
+  color: #111111;
+}
+
+body.light-theme .card-desc,
+body.light-theme .pricing-desc,
+body.light-theme .bundle-desc,
+body.light-theme .hero-text p,
+body.light-theme .section-subtitle,
+body.light-theme .highlight-card p,
+body.light-theme .trust-card p,
+body.light-theme .faq-item p {
+  color: #555555;
+}
+
+body.light-theme .site-footer {
+  background: #f0f0f0;
+  color: #777777;
 }
 
 /* Responsive */

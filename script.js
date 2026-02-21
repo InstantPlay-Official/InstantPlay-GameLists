@@ -233,15 +233,29 @@ async function fetchBatchDetails(ids) {
     const numericIds = ids.filter(id => /^\d+$/.test(String(id)));
     const idsParam = numericIds.join(",");
     if (!idsParam) {
-      // Mark non-numeric IDs as processed
       ids.forEach(id => {
         const gameIndex = games.findIndex(g => g.id == id);
         if (gameIndex !== -1) {
-          games[gameIndex].detailsLoaded = true;
-          if (games[gameIndex].release_date === "Loading...") games[gameIndex].release_date = "Unknown";
-          if (games[gameIndex].storageDisplay === "Checking...") games[gameIndex].storageDisplay = "Unknown Size";
-          if (!games[gameIndex].description) games[gameIndex].description = games[gameIndex].notes || "Description not available.";
-          if (!games[gameIndex].pc_requirements) games[gameIndex].pc_requirements = { minimum: "Not specified", recommended: "Not specified" };
+          const game = games[gameIndex];
+          game.detailsLoaded = true;
+          if (game.release_date === "Loading...") game.release_date = "Unknown";
+          if (game.storageDisplay === "Checking...") game.storageDisplay = "Unknown Size";
+
+          if (!game.description) {
+            const base = game.notes || `Offline PC version of ${game.name}.`;
+            game.description = `${base} Enjoy full game content without an internet connection.`;
+          }
+
+          if (!game.pc_requirements) {
+            const storageText = game.storageGB
+              ? `${game.storageGB} GB available space`
+              : "available storage space";
+
+            game.pc_requirements = {
+              minimum: `<strong>OS:</strong> Windows 10/11 64-bit<br><strong>Processor:</strong> Intel Core i5-4460 / AMD FX-6300<br><strong>Memory:</strong> 8 GB RAM<br><strong>Graphics:</strong> NVIDIA GeForce GTX 960 / AMD Radeon R9 280<br><strong>Storage:</strong> ${storageText}`,
+              recommended: `<strong>OS:</strong> Windows 10/11 64-bit<br><strong>Processor:</strong> Intel Core i7-4770 / AMD Ryzen 5 1600<br><strong>Memory:</strong> 16 GB RAM<br><strong>Graphics:</strong> NVIDIA GeForce GTX 1660 / AMD Radeon RX 590<br><strong>Storage:</strong> ${storageText}`
+            };
+          }
         }
       });
       return;
@@ -390,9 +404,6 @@ function renderGames(list) {
              alt="${game.name}" 
              loading="lazy"
              onerror="this.onerror=null; this.src='https://via.placeholder.com/1920x1080?text=' + encodeURIComponent(this.alt);">
-        <div class="img-overlay-tag">
-          <i class="fa-solid fa-image"></i> View
-        </div>
       </div>
       <div class="card-body">
         <h3 class="card-title" title="${game.name}">${game.name}</h3>
@@ -427,36 +438,47 @@ window.showGameDetails = function(id) {
 
   const modal = document.getElementById("detailsModal");
   const content = document.getElementById("detailsContent");
-  
-  // Format Requirements
-  let reqHtml = "<p>System requirements not available.</p>";
-  
-  if (game.pc_requirements) {
-    if (typeof game.pc_requirements === 'string') {
-        reqHtml = game.pc_requirements;
-    } else {
-        // Steam API usually returns object with 'minimum' and 'recommended' strings (HTML)
-        const min = game.pc_requirements.minimum || "Not specified";
-        const rec = game.pc_requirements.recommended || "Not specified";
-        
-        reqHtml = `
-          <div class="req-grid">
-            <div class="req-col">
-              <h4><i class="fa-solid fa-minus"></i> Minimum</h4>
-              <div class="req-text">${min}</div>
-            </div>
-            <div class="req-col">
-              <h4><i class="fa-solid fa-plus"></i> Recommended</h4>
-              <div class="req-text">${rec}</div>
-            </div>
-          </div>
-        `;
-    }
-  }
+
+  const imgSrc = game.image || DEFAULT_IMAGE;
+
+  const storageText = game.storageGB
+    ? `${game.storageGB} GB available space`
+    : "available storage space";
+
+  const aboutHtml = `Offline PC version of ${game.name}. Enjoy full game content without an internet connection.`;
+
+  const reqHtml = `
+    <div class="req-grid">
+      <div class="req-col">
+        <h4><i class="fa-solid fa-minus"></i> Minimum</h4>
+        <div class="req-text">
+          <strong>OS:</strong> Windows 10/11 64-bit<br>
+          <strong>Processor:</strong> Intel Core i5-4460 / AMD FX-6300<br>
+          <strong>Memory:</strong> 8 GB RAM<br>
+          <strong>Graphics:</strong> NVIDIA GeForce GTX 960 / AMD Radeon R9 280<br>
+          <strong>Storage:</strong> ${storageText}
+        </div>
+      </div>
+      <div class="req-col">
+        <h4><i class="fa-solid fa-plus"></i> Recommended</h4>
+        <div class="req-text">
+          <strong>OS:</strong> Windows 10/11 64-bit<br>
+          <strong>Processor:</strong> Intel Core i7-4770 / AMD Ryzen 5 1600<br>
+          <strong>Memory:</strong> 16 GB RAM<br>
+          <strong>Graphics:</strong> NVIDIA GeForce GTX 1660 / AMD Radeon RX 590<br>
+          <strong>Storage:</strong> ${storageText}
+        </div>
+      </div>
+    </div>
+  `;
 
   content.innerHTML = `
     <div class="details-header-img">
-      <img src="${game.image}" alt="${game.name}">
+      <a href="${imgSrc}" target="_blank" rel="noopener noreferrer">
+        <img src="${imgSrc}" 
+             alt="${game.name}"
+             onerror="this.onerror=null; this.src='https://via.placeholder.com/1920x1080?text=' + encodeURIComponent(this.alt);">
+      </a>
       <div class="details-overlay">
         <h2>${game.name}</h2>
       </div>
@@ -464,7 +486,7 @@ window.showGameDetails = function(id) {
     <div class="details-body">
       <div class="details-desc">
         <h3>About the Game</h3>
-        <p>${game.description || game.short_description || "No description available."}</p>
+        <p>${aboutHtml}</p>
       </div>
       
       <div class="details-specs">
@@ -534,6 +556,26 @@ sortSelect.addEventListener("change", applyFilters);
 // --- CART LOGIC ---
 
 const pricingOptions = {
+  pricing_49: {
+    name: "₱49 – Solo (1 Game)",
+    storageDisplay: "Pricing: ₱49 Solo – 1 Game",
+    price: 49
+  },
+  pricing_99: {
+    name: "₱99 – Duo (2 Games)",
+    storageDisplay: "Pricing: ₱99 Duo – 2 Games",
+    price: 99
+  },
+  pricing_149: {
+    name: "₱149 – Squad (3 Games + 1 Free)",
+    storageDisplay: "Pricing: ₱149 Squad – 3 Games + 1 Free",
+    price: 149
+  },
+  pricing_229: {
+    name: "₱229 – Vault (5 Games + 1 Free)",
+    storageDisplay: "Pricing: ₱229 Vault – 5 Games + 1 Free",
+    price: 229
+  },
   pricing_599: {
     name: "₱599 – Lifetime Access (3,000+ Games)",
     storageDisplay: "Pricing: ₱599 Lifetime Access – 3,000+ Games",
@@ -542,6 +584,39 @@ const pricingOptions = {
 };
 
 let toastTimeout;
+
+function calculateGamesPricing(gameCount) {
+  if (gameCount <= 0) return 0;
+  const soloPrice = 49;
+  const duoPrice = 99;
+  const squadPrice = 149;
+  const vaultPrice = 229;
+
+  let total = 0;
+
+  if (gameCount >= 6) {
+    const fullBlocks = Math.floor(gameCount / 6);
+    total += fullBlocks * vaultPrice;
+    gameCount = gameCount % 6;
+  }
+
+  if (gameCount >= 4) {
+    total += squadPrice;
+    gameCount -= 4;
+  }
+
+  if (gameCount >= 2) {
+    const duos = Math.floor(gameCount / 2);
+    total += duos * duoPrice;
+    gameCount = gameCount % 2;
+  }
+
+  if (gameCount === 1) {
+    total += soloPrice;
+  }
+
+  return total;
+}
 
 function isInCart(id) {
   return cart.some(g => String(g.id) === String(id));
@@ -603,13 +678,46 @@ function flashCart() {
   btn.classList.add("cart-flash");
 }
 
+function animateLifetimeToCart() {
+  const card = document.querySelector(".lifetime-card");
+  const cartBtn = document.getElementById("cartBtn");
+  if (!card || !cartBtn) return;
+
+  const cardRect = card.getBoundingClientRect();
+  const cartRect = cartBtn.getBoundingClientRect();
+
+  const flyer = card.cloneNode(true);
+  flyer.className = "lifetime-flyer";
+  flyer.style.position = "fixed";
+  flyer.style.left = cardRect.left + "px";
+  flyer.style.top = cardRect.top + "px";
+  flyer.style.width = cardRect.width + "px";
+  flyer.style.height = cardRect.height + "px";
+  flyer.style.zIndex = "250";
+  flyer.style.pointerEvents = "none";
+
+  document.body.appendChild(flyer);
+
+  const translateX = cartRect.left + cartRect.width / 2 - (cardRect.left + cardRect.width / 2);
+  const translateY = cartRect.top + cartRect.height / 2 - (cardRect.top + cardRect.height / 2);
+
+  requestAnimationFrame(() => {
+    flyer.style.transform = `translate(${translateX}px, ${translateY}px) scale(0.25)`;
+    flyer.style.opacity = "0";
+  });
+
+  setTimeout(() => {
+    if (flyer.parentNode) flyer.parentNode.removeChild(flyer);
+  }, 650);
+}
+
 function syncSelectionUI() {
   const pricingCards = document.querySelectorAll(".pricing-card");
   pricingCards.forEach(card => {
     const id = card.getAttribute("data-pricing-id");
     if (!id) return;
-    if (isInCart(id)) card.classList.add("pricing-selected");
-    else card.classList.remove("pricing-selected");
+    if (id === "pricing_599") return;
+    card.classList.remove("pricing-selected");
   });
 
   const bundleCards = document.querySelectorAll(".bundle-card");
@@ -619,6 +727,17 @@ function syncSelectionUI() {
     if (isInCart(id)) card.classList.add("bundle-selected");
     else card.classList.remove("bundle-selected");
   });
+
+  const lifetimeCard = document.querySelector(".lifetime-card");
+  if (lifetimeCard) {
+    if (isInCart("pricing_599")) {
+      lifetimeCard.classList.add("pricing-selected");
+      lifetimeCard.classList.add("lifetime-selected");
+    } else {
+      lifetimeCard.classList.remove("pricing-selected");
+      lifetimeCard.classList.remove("lifetime-selected");
+    }
+  }
 }
 
 window.toggleBundle = function(bundleId, name, label) {
@@ -655,21 +774,23 @@ window.toggleBundle = function(bundleId, name, label) {
 
 window.togglePricing = function(id) {
   id = String(id);
+  if (id === "pricing_599") {
+    toggleLifetimeAccess();
+    return;
+  }
+  showToast("Game pricing is automatic now based on how many games you add.");
+};
+
+function toggleLifetimeAccess() {
+  const id = "pricing_599";
   const option = pricingOptions[id];
   if (!option) return;
 
   const alreadySelected = isInCart(id);
 
-  const activeIds = Object.keys(pricingOptions);
-  cart = cart.filter(item => !activeIds.includes(String(item.id)));
+  cart = cart.filter(item => String(item.id) !== id);
 
-  const cards = document.querySelectorAll(".pricing-card");
-  cards.forEach(card => {
-    const pid = card.getAttribute("data-pricing-id");
-    if (!pid) return;
-    card.classList.remove("pricing-selected");
-  });
-
+  const lifetimeCard = document.querySelector(".lifetime-card");
   if (!alreadySelected) {
     cart.push({
       id: id,
@@ -678,22 +799,25 @@ window.togglePricing = function(id) {
       storageDisplay: option.storageDisplay,
       price: option.price
     });
-    const selectedCard = document.querySelector(`.pricing-card[data-pricing-id="${id}"]`);
-    if (selectedCard) selectedCard.classList.add("pricing-selected");
+    if (lifetimeCard) {
+      lifetimeCard.classList.add("pricing-selected");
+      lifetimeCard.classList.add("lifetime-selected");
+    }
     flashCart();
-    showToast(`${option.name} selected`);
+    animateLifetimeToCart();
+    showToast("You chose the BEST DEAL: ₱599 Lifetime Access added to cart.");
+  } else {
+    if (lifetimeCard) {
+      lifetimeCard.classList.remove("pricing-selected");
+      lifetimeCard.classList.remove("lifetime-selected");
+    }
+    showToast("₱599 Lifetime Access removed from cart.");
   }
 
   saveCartData();
-};
+}
 
-function updateCartUI() {
-  cartCount.innerText = cart.length;
-  totalCountEl.innerText = cart.length;
-  
-  const totalGB = cart.reduce((sum, g) => sum + (g.storageGB || 0), 0);
-  totalSizeEl.innerText = totalGB.toFixed(2);
-
+function calculateCartPricing() {
   let gamesCount = 0;
   let bundlePrice = 0;
   let bundleLabels = [];
@@ -702,45 +826,39 @@ function updateCartUI() {
   cart.forEach(item => {
     const id = String(item.id || "");
     const itemPrice = item.price || 0;
+
     if (id.startsWith("bundle_")) {
       bundlePrice += itemPrice;
-      bundleLabels.push(item.name);
+      if (item.name) bundleLabels.push(item.name);
     } else if (id === "pricing_599") {
       lifetimePrice += itemPrice;
-    } else {
+    } else if (!id.startsWith("pricing_")) {
       gamesCount += 1;
     }
   });
 
-  function computeGamePackagePrice(count) {
-    let total = 0;
-    let remaining = count;
-    while (remaining > 0) {
-      if (remaining >= 6) {
-        total += 229;
-        remaining -= 6;
-      } else if (remaining === 5) {
-        total += 229;
-        remaining = 0;
-      } else if (remaining >= 4) {
-        total += 149;
-        remaining -= 4;
-      } else if (remaining >= 3) {
-        total += 149;
-        remaining -= 3;
-      } else if (remaining === 2) {
-        total += 99;
-        remaining -= 2;
-      } else if (remaining === 1) {
-        total += 49;
-        remaining -= 1;
-      }
-    }
-    return total;
-  }
+  const gamesPrice = calculateGamesPricing(gamesCount);
+  const totalPrice = gamesPrice + bundlePrice + lifetimePrice;
 
-  const gamesPrice = computeGamePackagePrice(gamesCount);
-  const totalPrice = gamesPrice + lifetimePrice + bundlePrice;
+  return {
+    gamesCount,
+    gamesPrice,
+    bundlePrice,
+    bundleLabels,
+    lifetimePrice,
+    totalPrice
+  };
+}
+
+function updateCartUI() {
+  cartCount.innerText = cart.length;
+  totalCountEl.innerText = cart.length;
+  
+  const totalGB = cart.reduce((sum, g) => sum + (g.storageGB || 0), 0);
+  totalSizeEl.innerText = totalGB.toFixed(2);
+
+  const pricingSummary = calculateCartPricing();
+  const totalPrice = pricingSummary.totalPrice;
 
   if (totalPriceEl) {
     totalPriceEl.innerText = totalPrice.toLocaleString("en-PH");
@@ -751,15 +869,15 @@ function updateCartUI() {
 
   if (priceBreakdownEl) {
     const parts = [];
-    if (gamesCount > 0) {
-      parts.push(`<div class="breakdown-row"><span>Games (${gamesCount}) – package pricing</span><span>₱${gamesPrice.toLocaleString("en-PH")}</span></div>`);
+    if (pricingSummary.gamesCount > 0) {
+      parts.push(`<div class="breakdown-row"><span>Games (${pricingSummary.gamesCount})</span><span>₱${pricingSummary.gamesPrice.toLocaleString("en-PH")}</span></div>`);
     }
-    if (lifetimePrice > 0) {
-      parts.push(`<div class="breakdown-row"><span>₱599 Lifetime Access</span><span>₱${lifetimePrice.toLocaleString("en-PH")}</span></div>`);
+    if (pricingSummary.lifetimePrice > 0) {
+      parts.push(`<div class="breakdown-row"><span>₱599 Lifetime Access</span><span>₱${pricingSummary.lifetimePrice.toLocaleString("en-PH")}</span></div>`);
     }
-    if (bundlePrice > 0) {
-      const label = bundleLabels.join(", ") || "HDD Bundle";
-      parts.push(`<div class="breakdown-row"><span>${label}</span><span>₱${bundlePrice.toLocaleString("en-PH")}</span></div>`);
+    if (pricingSummary.bundlePrice > 0) {
+      const label = pricingSummary.bundleLabels.join(", ") || "HDD Bundle";
+      parts.push(`<div class="breakdown-row"><span>${label}</span><span>₱${pricingSummary.bundlePrice.toLocaleString("en-PH")}</span></div>`);
     }
 
     priceBreakdownEl.innerHTML = parts.length ? parts.join("") : `<div class="breakdown-empty">No priced items selected yet.</div>`;
@@ -852,20 +970,18 @@ function applyTheme(mode) {
   if (isDark) {
     document.documentElement.style.setProperty('--bg-primary', '#070707');
     document.documentElement.style.setProperty('--bg-secondary', '#111111');
-    document.documentElement.style.setProperty('--bg-card', '#181818');
     document.documentElement.style.setProperty('--text-primary', '#f5f5f5');
     document.documentElement.style.setProperty('--text-secondary', '#a0a0a0');
-    document.body.classList.remove("theme-light");
     themeToggle.innerHTML = '<i class="fa-solid fa-moon"></i>';
   } else {
     document.documentElement.style.setProperty('--bg-primary', '#f7f7f7');
     document.documentElement.style.setProperty('--bg-secondary', '#ffffff');
-    document.documentElement.style.setProperty('--bg-card', '#f0f0f0');
     document.documentElement.style.setProperty('--text-primary', '#111111');
     document.documentElement.style.setProperty('--text-secondary', '#555555');
-    document.body.classList.add("theme-light");
     themeToggle.innerHTML = '<i class="fa-solid fa-sun"></i>';
   }
+  document.body.classList.toggle("dark-theme", isDark);
+  document.body.classList.toggle("light-theme", !isDark);
   localStorage.setItem("instantplay_theme", isDark ? "dark" : "light");
 }
 
